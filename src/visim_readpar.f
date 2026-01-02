@@ -25,7 +25,6 @@ c
 c
 c
 c-----------------------------------------------------------------------
-      use geostat_allocate
       include  'visim.inc'
       real      var(50)
       real*8    p,acorni,cp,oldcp,w
@@ -232,17 +231,6 @@ c     1     in nscore space = ',n_monte
 
       nxy  = nx*ny
       nxyz = nx*ny*nz
-
-c     ALLOCATE X,Y,Z
-       allocate(xxx(nx),stat = test)
-       allocate(xxx(2*nx),stat = test)
-c       allocate(y(ny),stat = test)
-c       allocate(z(nz),stat = test)
-c       if(test.ne.0)then
-c          write(*,*)'ERROR 1: Allocation of x failed',
-c     +         ' due to insufficient memory.'
-c          stop
-c       end if
 
 
       read(lin,*,err=98) ixv(1)
@@ -709,8 +697,8 @@ c     READ THE FIRST COMMENTED LINES
                   k=k+1
                   read(lin,*,iostat = IntVar) vvreal
                   datacov(i,j)=vvreal
-c                  if (idbg.gt.1)
-c     +                 write(*,*) '(ix,iy)=(',i,',',j,')',datacov(i,j)
+                  if (idbg.gt.1)
+     +                 write(*,*) '(ix,iy)=(',i,',',j,')',datacov(i,j)
                enddo
             enddo
 

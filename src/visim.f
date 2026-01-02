@@ -35,20 +35,11 @@ c
 c-----------------------------------------------------------------------
 
 
-C
-C MODULE FOR DYNAMIC ALLOCATIION
-C
-C
-      module geostat_allocate
-c     RELATED TO DAT
-      real,allocatable      :: xxx(:),yyy(:),zzz(:)
-      end module
 
 C
 C MAIN PROGRAM
 C
       program main
-      use geostat_allocate
       include  'visim.inc'
 
       character tmpfl*80
@@ -68,11 +59,7 @@ c
 c
 c Read the parameters and data (transform as required):
 c
-
-
-
       call readparm
-
 
 c
 c Create Conditional Prob Lookup Table
