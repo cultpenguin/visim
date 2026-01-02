@@ -147,6 +147,11 @@ subroutine populate_all_parameters()
     densitypr = 0
     if (idbg >= -1) write(*,*) 'Forcing random path for estimation'
   end if
+  ! For unconditional simulation, force independent random path
+  if (icond == 0 .and. densitypr /= 0) then
+    densitypr = 0
+    if (idbg >= -1) write(*,*) 'Forcing independent path for unconditional simulation'
+  end if
 
   read(lin, *, err=98) sstrat
   mults = 0

@@ -109,7 +109,7 @@ program visim_main
   call readparm_populate()
 
   !=====================================================================
-  ! PHASE 4: Main simulation loop (placeholder for now)
+  ! PHASE 4: Main simulation loop
   !=====================================================================
 
   write(*,*)
@@ -118,27 +118,41 @@ program visim_main
   write(*,*) '======================================================='
   write(*,*)
 
-  ! NOTE: This is a placeholder. Full simulation requires:
-  !   1. Creating conditional probability lookup table (if DSSIM)
-  !   2. Setting up covariance lookup tables
-  !   3. Opening output file
-  !   4. Loop through realizations:
-  !      - Generate random path
-  !      - For each node: krige, simulate
-  !   5. Writing results
-  !   6. Saving covariance tables (if not read from file)
+  ! Create conditional probability lookup table (if DSSIM mode)
+  if (idrawopt == 1) then
+    write(*,*) 'Creating conditional probability lookup table (DSSIM)...'
+    call create_condtab()
+  end if
 
-  write(*,*) 'NOTE: Full simulation loop not yet implemented.'
-  write(*,*) '      This is a skeleton to demonstrate the framework.'
+  ! Open output file
+  open(lout, file=outfl, status='UNKNOWN')
+  write(lout,'(A)') 'VISIM F90 Simulation Output'
+  write(lout,'(A,I0)') 'Number of realizations: ', nsim
+  write(lout,'(A,I0,A,I0,A,I0)') 'Grid: ', nx, ' x ', ny, ' x ', nz
+
+  ! Main simulation loop
   write(*,*)
-  write(*,'(A,I0,A)') '  Would simulate ', nsim, ' realization(s)'
-  write(*,'(A,I0,A)') '  on ', nx*ny*nz, ' grid nodes'
+  write(*,'(A,I0,A)') 'Simulating ', nsim, ' realization(s)...'
   write(*,*)
 
-  ! Placeholder for main simulation call
-  ! do isim = 1, nsim
-  !   call visim  ! Main simulation subroutine
-  ! end do
+  do isim = 1, nsim
+    if (nsim > 1) then
+      write(*,'(A,I0,A,I0)') 'Realization ', isim, ' of ', nsim
+    end if
+
+    ! Call main simulation subroutine
+    call visim
+
+    ! Write results (handled in visim or trans subroutine)
+
+  end do
+
+  close(lout)
+
+  write(*,*)
+  write(*,*) 'Simulation complete!'
+  write(*,'(A,A)') '  Output written to: ', trim(outfl)
+  write(*,*)
 
   !=====================================================================
   ! PHASE 5: Cleanup and exit
