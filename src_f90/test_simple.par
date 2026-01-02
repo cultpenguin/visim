@@ -1,0 +1,44 @@
+# VISIM Test Parameter File (Keyword Format)
+# Simple test for framework validation
+
+[GENERAL]
+version = 2.0
+conditional_simulation = 1
+debug_level = 0
+
+[FILES]
+data_file = test_data.eas
+volgeom_file = test_volgeom.deas
+volsum_file = test_volsum.eas
+output_file = test_output.out
+
+[GRID]
+nx = 10
+ny = 10
+nz = 1
+xmin = 0.0
+ymin = 0.0
+zmin = 0.0
+xsize = 1.0
+ysize = 1.0
+zsize = 1.0
+
+[SIMULATION]
+n_realizations = 1
+random_seed = 69069
+
+[SEARCH]
+ndmin = 0
+ndmax = 8
+nodmax = 12
+radius_max = 10.0
+
+[VARIOGRAM]
+n_structures = 1
+nugget = 0.0
+struct1_type = 1
+struct1_contribution = 1.0
+struct1_range_major = 5.0
+
+[DIMENSIONS]
+# Let these auto-calculate for now
