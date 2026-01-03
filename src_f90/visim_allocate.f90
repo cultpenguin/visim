@@ -67,7 +67,7 @@ subroutine allocate_all_arrays(maxdat, maxvols, maxdinvol, &
 
   ! Allocate grid arrays
   write(*,*) '2. Allocating grid arrays...'
-  call allocate_grid_arrays(nx_in, ny_in, nz_in)
+  call allocate_grid_arrays(nx_in, ny_in, nz_in, maxctx, maxcty, maxctz)
 
   ! Allocate volume arrays
   write(*,*) '3. Allocating volume arrays...'

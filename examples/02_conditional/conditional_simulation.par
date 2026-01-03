@@ -1,0 +1,38 @@
+                  Parameters for VISIM
+                  ********************
+
+START OF PARAMETERS:
+1                             - conditional simulation (0=no,1=p+v,2=p,3=v)
+conditioning_data.eas         - file with conditioning data
+1 2 3 4                       - columns for X,Y,Z,val
+dummy_volgeom.eas             - Geometry of volume
+dummy_volsum.eas              - Summary of volgeom.eas
+-1.0e21   1.0e21              - trimming limits
+0 -1 -1 -1 -1 0 0             - debugging level (0=normal)
+conditional_simulation.out    - file for output
+100                           - number of realizations
+0                             - ccdf type: 0=Gaussian, 1=DSSIM
+reference.eas                 - reference histogram
+1    0                        - columns for variable and weights
+-3.5 3.5 100                  - min_Gmean,max_Gmean,n_Gmean
+0 2 100                       - min_Gvar,max_Gvar,n_Gvar
+170 0                         - nQ (number of quantiles)
+40   0.0   1.0                - nx,xmn,xsiz
+40   0.0   1.0                - ny,ymn,ysiz
+1    0.0   1.0                - nz,zmn,zsiz
+69069                         - random number seed
+0    12                       - min and max data for kriging
+12                            - max previously simulated nodes
+0 8 0.001                     - Volume Neighborhood
+1                             - Random Path (1=independent)
+1                             - assign data to nodes (1=yes)
+0                             - maximum data per octant (0=no limit)
+20.0  20.0  10.0              - maximum search radii
+0.0   0.0   0.0               - angles for search ellipsoid
+10.0  9.0                     - global mean and variance (std=3)
+1    0.10                     - nst, nugget effect
+1    0.90  0.0   0.0   0.0    - it,cc,ang1,ang2,ang3
+         10.0 10.0  5.0       - a_hmax, a_hmin, a_vert
+-10.0   10.0                  - zmin,zmax (tail)
+1       0.0                   - lower tail option, parameter
+1      10.0                   - upper tail option, parameter

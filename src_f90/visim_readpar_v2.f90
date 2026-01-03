@@ -170,10 +170,11 @@ subroutine read_dimensions_legacy(maxdat, maxvols, maxdinvol, &
   maxref = 10000         ! Reference distribution
   maxcat = 24            ! Categories
 
-  ! Covariance table dimensions (match grid)
-  maxctx = nx
-  maxcty = ny
-  maxctz = nz
+  ! Covariance table dimensions - must be large enough to cover search radius
+  ! Use at least 2*grid_size + 1 to ensure full grid coverage, with minimum of 51
+  maxctx = max(2 * nx + 1, 51)
+  maxcty = max(2 * ny + 1, 51)
+  maxctz = max(2 * nz + 1, 11)
 
   ! Super block dimensions (standard defaults)
   maxsbx = 21

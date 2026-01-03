@@ -58,7 +58,7 @@ module visim_params_mod
   ! Drawing and kurtosis (from /kurto/)
   integer :: idrawopt          ! drawing option
   real :: ckurt                ! target kurtosis
-  real :: pkr                  ! kurtosis power
+  real :: pkr = 0.0            ! kurtosis power (default 0.0 for normal simulation)
 
   ! Transformation parameters (scalar parts)
   integer :: ltail, utail      ! lower/upper tail options
@@ -249,9 +249,9 @@ module visim_grid_mod
 
 contains
 
-  subroutine allocate_grid_arrays(nx, ny, nz)
-    integer, intent(in) :: nx, ny, nz
-    integer :: nxyz, ierr
+  subroutine allocate_grid_arrays(nx, ny, nz, maxctx, maxcty, maxctz)
+    integer, intent(in) :: nx, ny, nz, maxctx, maxcty, maxctz
+    integer :: nxyz, ierr, max_tmp_size
 
     nxyz = nx * ny * nz
     mxyz_max = nxyz
@@ -259,15 +259,20 @@ contains
     write(*,'(A,I0,A,I0,A,I0,A,I0)') &
       'Allocating grid arrays: ', nx, ' x ', ny, ' x ', nz, ' = ', nxyz
 
-    allocate(sim(nxyz), lvm(nxyz), tmp(nxyz), stat=ierr)
+    ! tmp is used in ctable for nlooku entries, which can be > nxyz
+    ! Allocate with size for maximum covariance table
+    max_tmp_size = maxctx * maxcty * maxctz
+
+    allocate(sim(nxyz), lvm(nxyz), tmp(max_tmp_size), stat=ierr)
     if (ierr /= 0) then
       write(*,*) 'ERROR: Failed to allocate sim/lvm/tmp arrays'
-      write(*,*) '  Requested size: ', nxyz, ' elements'
-      write(*,*) '  Memory required: ~', nxyz*12/1024/1024, ' MB'
+      write(*,*) '  Requested size: nxyz=', nxyz, ', tmp=', max_tmp_size
+      write(*,*) '  Memory required: ~', (nxyz*8 + max_tmp_size*4)/1024/1024, ' MB'
       stop 'ALLOCATION_FAILURE'
     end if
 
-    allocate(order(nxyz), dvr(nxyz), krgvar(nxyz), stat=ierr)
+    ! order is also used in ctable for sorting the lookup table
+    allocate(order(max_tmp_size), dvr(nxyz), krgvar(nxyz), stat=ierr)
     if (ierr /= 0) then
       write(*,*) 'ERROR: Failed to allocate order/dvr/krgvar arrays'
       stop 'ALLOCATION_FAILURE'
@@ -795,5 +800,9 @@ module visim_random_mod
 
   ! ACORN RNG state (secondary)
   integer :: ixv2(MAXOP1), itr2(MAXOP1)
+
+  ! Bind to F77 common blocks for GSLIB compatibility
+  common /iaco/ ixv, itr
+  common /iaco2/ ixv2, itr2
 
 end module visim_random_mod

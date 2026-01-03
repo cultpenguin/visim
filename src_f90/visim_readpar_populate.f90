@@ -164,6 +164,7 @@ subroutine populate_all_parameters()
   ! Random seed
   read(lin, *, err=98) ixv(1)
   ixv2(1) = ixv(1)
+  idum = ixv(1)
   if (idbg > 0) write(*,*) 'Random seed:', ixv(1)
 
   ! Initialize random number generator
