@@ -19,18 +19,35 @@ module visim_readpar_populate
   character(len=512), save :: current_parfile = 'visim.par'
 
   ! External GSLIB functions
-  external :: chknam
   real*8, external :: acorni
 
 contains
 
 !-----------------------------------------------------------------------
+! chknam_f90 - F90 version of chknam that works with F90 strings
+!-----------------------------------------------------------------------
+subroutine chknam_f90(str)
+  character(len=*), intent(inout) :: str
+  integer :: i, first_nonblank, first_blank
+
+  ! Remove leading blanks
+  str = adjustl(str)
+
+  ! Find first blank after non-blank content and truncate there
+  first_blank = index(str, ' ')
+  if (first_blank > 0) then
+    str(first_blank:) = ' '
+  end if
+
+end subroutine chknam_f90
+
+!-----------------------------------------------------------------------
 ! populate_all_parameters - Complete parameter reading implementation
 !-----------------------------------------------------------------------
 subroutine populate_all_parameters()
-  character(len=512) :: datafl, volgeomfl, volsumfl, dbgfl, tmpfl
+  character(len=512) :: datafl, volgeomfl, volsumfl, dbgfl, tmpfl, test_line
   integer :: ixl, iyl, izl, ivrl, iwt, isecvr
-  integer :: i, test, argc
+  integer :: i, test, argc, ierr
   real :: radius1, radius2, aa1, aa2, sill
   real :: av, ss
   real*8 :: p, acorni
@@ -44,6 +61,7 @@ subroutine populate_all_parameters()
   llvm = 4
   lkv = 5
   lout_mean = 26
+  write(*,*) 'DEBUG: File units initialized, lin=', lin
 
   ! Initialize debug level (will be overridden by parameter file)
   idbg = 0
@@ -51,7 +69,9 @@ subroutine populate_all_parameters()
   write(*,*) 'Reading parameters from file...'
 
   ! Open parameter file
+  write(*,*) 'DEBUG: About to open unit', lin, ' file=', trim(get_parfile_name())
   open(lin, file=trim(get_parfile_name()), status='OLD')
+  write(*,*) 'DEBUG: File opened, lin=', lin
 
   ! Find START marker (legacy format) - skip for keyword format
   call find_start_marker()
@@ -61,7 +81,7 @@ subroutine populate_all_parameters()
   if (idbg > 0) write(*,*) 'Conditional simulation flag:', icond
 
   read(lin, '(a)', err=98) datafl
-  call chknam(datafl, 40)
+  call chknam_f90(datafl)
   if (idbg > 0) write(*,*) 'Data file:', trim(datafl)
 
   read(lin, *, err=98) ixl, iyl, izl, ivrl
@@ -69,25 +89,41 @@ subroutine populate_all_parameters()
   isecvr = 0
 
   read(lin, '(a)', err=98) volgeomfl
-  call chknam(volgeomfl, 40)
+  call chknam_f90(volgeomfl)
 
   read(lin, '(a)', err=98) volsumfl
-  call chknam(volsumfl, 40)
+  call chknam_f90(volsumfl)
 
+  write(*,*) 'DEBUG: About to read tmin/tmax (line 6)'
   read(lin, *, err=98) tmin, tmax
   if (idbg > 0) write(*,*) 'Trimming limits:', tmin, tmax
 
+  write(*,*) 'DEBUG: About to read idbg line (line 7), lin=', lin
   read(lin, *, err=98) idbg, read_covtable, read_lambda, read_volnh, read_randpath, do_cholesky, do_error_sim
+  write(*,*) 'DEBUG: After idbg, idbg=', idbg, ' lin=', lin
   if (idbg > -2) write(*,*) 'VISIM', VERSION, trim(get_parfile_name())
+  write(*,*) 'DEBUG: After VISIM print, lin=', lin
 
+  write(*,*) 'DEBUG: About to read outfl (line 8), lin=', lin
   read(lin, '(a)', err=98) outfl
-  call chknam(outfl, 40)
-  if (idbg > 0) write(*,*) 'Output file:', trim(outfl)
+  write(*,*) 'DEBUG: After read outfl, lin=', lin
+  write(*,*) 'DEBUG: Raw outfl=[', trim(outfl), ']'
+  call chknam_f90(outfl)
+  write(*,*) 'DEBUG: After chknam, lin=', lin
+  write(*,*) 'Output file:', trim(outfl)
 
   tmpfl = 'debug_' // trim(outfl)
+  write(*,*) 'DEBUG: About to open debug file unit', ldbg, ' file=', trim(tmpfl), ' lin=', lin
   open(ldbg, file=tmpfl, status='UNKNOWN')
+  write(*,*) 'DEBUG: Debug file opened successfully, lin=', lin
 
+  write(*,*) 'DEBUG: About to read nsim (line 9) from unit', lin
+  read(lin, '(a)', iostat=ierr) test_line
+  write(*,*) 'DEBUG: Read iostat=', ierr, ' Line content=[', trim(test_line), ']', ' len=', len_trim(test_line)
+  if (ierr /= 0) goto 98
+  backspace(lin)
   read(lin, *, err=98) nsim
+  write(*,*) 'DEBUG: nsim=', nsim
   if (nsim == 0) then
     nsim = 1
     doestimation = 1
@@ -97,11 +133,14 @@ subroutine populate_all_parameters()
     if (idbg > 0) write(*,*) 'Number of realizations:', nsim
   end if
 
+  write(*,*) 'DEBUG: About to read idrawopt (line 10)'
   read(lin, *, err=98) idrawopt
   if (idbg > 0) write(*,*) 'Distribution type:', idrawopt
+  write(*,*) 'DEBUG: After idrawopt, line ~10'
 
   ! Read DSSIM parameters (always present in file, even if not used)
   read(lin, '(a)', err=98) tmpfl  ! btfl - target histogram file
+  write(*,*) 'DEBUG: After tmpfl, line ~11'
   read(lin, *, err=98) ibt, ibtw
   read(lin, *, err=98) min_Gmean, max_Gmean, n_Gmean
   read(lin, *, err=98) min_Gvar, max_Gvar, n_Gvar
@@ -238,10 +277,13 @@ subroutine populate_all_parameters()
       call read_data_file(datafl, ixl, iyl, izl, ivrl)
     end if
   else
-    ! Unconditional simulation
+    ! Unconditional simulation - no data, no volumes
     ndmin = 0
     ndmax = 0
     sstrat = 1
+    nvol = 0
+    musevols = 0
+    nusevols = 0
   end if
 
   if (icond == 2) then
@@ -299,9 +341,14 @@ subroutine read_data_file(datafl, ixl, iyl, izl, ivrl)
   lin_data = 10
   open(lin_data, file=datafl, status='OLD', err=99)
 
-  ! Read header
-  read(lin_data, '(a)', err=99) str
-  read(lin_data, *, err=99) test
+  ! Read header - GEO-EAS format
+  read(lin_data, '(a)', err=99) str  ! Title line
+  read(lin_data, *, err=99) test     ! Number of variables
+
+  ! Skip variable name lines
+  do i = 1, test
+    read(lin_data, '(a)', err=99) str
+  end do
 
   ! Count data points
   nd = 0
@@ -313,8 +360,13 @@ subroutine read_data_file(datafl, ixl, iyl, izl, ivrl)
 20 rewind(lin_data)
 
   ! Skip header again
-  read(lin_data, '(a)') str
-  read(lin_data, *) test
+  read(lin_data, '(a)') str  ! Title
+  read(lin_data, *) test     ! Number of variables
+
+  ! Skip variable names again
+  do i = 1, test
+    read(lin_data, '(a)') str
+  end do
 
   ! Read data
   do i = 1, nd

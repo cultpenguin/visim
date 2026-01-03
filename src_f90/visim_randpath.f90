@@ -41,7 +41,7 @@ subroutine rayrandpath(order_array)
   implicit none
 
   ! Arguments
-  real, intent(inout) :: order_array(:)
+  real, intent(inout) :: order_array(nxyz)
 
   ! Local variables
   integer :: ind, ix, iy, iz, nxy_local, j, k, nvp, i, ivol, idata

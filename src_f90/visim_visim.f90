@@ -254,12 +254,20 @@ subroutine visim
 
     ! CHECK IF SAMPLE IS ALREADY CONDITIONED
     if ((sim(index_local) /= UNEST) .or. (mask(index_local) == 0)) then
+      if (index_local <= 5 .and. idbg >= 0) then
+        write(*,*) 'DEBUG: Skipping node', index_local, ' sim=', sim(index_local), ' mask=', mask(index_local)
+      end if
       cycle
     end if
 
     iz = int((index_local - 1) / nxy) + 1
     iy = int((index_local - (iz - 1) * nxy - 1) / nx) + 1
     ix = index_local - (iz - 1) * nxy - (iy - 1) * nx
+
+    if (index_local <= 5 .and. idbg >= 0) then
+      write(*,*) 'DEBUG: Processing node', index_local, ' ix=', ix, ' iy=', iy, ' iz=', iz
+    end if
+
     xx = xmn + real(ix - 1) * xsiz
     yy = ymn + real(iy - 1) * ysiz
     zz = zmn + real(iz - 1) * zsiz
@@ -279,13 +287,15 @@ subroutine visim
                     xmnsup, xsizsup, nysup, ymnsup, ysizsup, &
                     nzsup, zmnsup, zsizsup, nclose, close, infoct)
 
-      if (idbg >= 3) then
-        write(ldbg, *) 'There are nclose=', nclose, &
-                       ' in the search radius for grid ', index_local
+      if (index_local <= 5) then
+        write(*,*) 'DEBUG: Node', index_local, ' nclose=', nclose, ' ndmin=', ndmin
       end if
 
       if (nclose < ndmin) then
         ! assign global mean and variance
+        if (index_local <= 5) then
+          write(*,*) 'DEBUG: Node', index_local, ' nclose < ndmin, using gmean=', skgmean
+        end if
         cmean = skgmean
         cstdev = sqrt(gvar)
         goto 51
@@ -336,15 +346,13 @@ subroutine visim
 51  continue
 
     ! Double check for not enough data with search radius
+    if (index_local <= 5) then
+      write(*,*) 'DEBUG: Node', index_local, ' nclose=', nclose, ' ncnode=', ncnode, ' nusev=', nusev, ' gmean=', gmean
+    end if
+
     if ((nclose + ncnode + nusev) < 1) then
-      if (idbg > 1) then
-        write(ldbg, *) ' __WARNING: neighboring data points and', &
-                       ' grid node have not been found.', &
-                       ' Global mean and variance is assigned.'
-        write(*, *) ' __WARNING: neighboring data points and', &
-                    ' grid node have not been found.', &
-                    ' Global mean and variance is assigned.'
-        write(*, *) 'index,nusev=', index_local, nusev
+      if (index_local <= 5 .or. idbg > 1) then
+        write(*,*) ' __WARNING: Node', index_local, ' no neighboring data - using global mean/var', gmean
       end if
       cmean = gmean
       cstdev = sqrt(gvar)
@@ -375,12 +383,19 @@ subroutine visim
       end if
       sim_mean(index_local) = cmean
       sim_std(index_local) = cstdev
+      if (index_local <= 5 .and. idbg >= 0) then
+        write(*,*) 'DEBUG: Set sim_mean(', index_local, ')=', cmean
+      end if
     else
       if (idbg > 0) write(*, *) 'PKR PKR', pkr
       sim(index_local) = cmean
     end if
 
   end do  ! END MAIN LOOP OVER NODES
+
+  if (idbg >= 0) then
+    write(*,*) 'DEBUG: After main loop, sim_mean(1:5)=', sim_mean(1:5)
+  end if
 
   if (doestimation == 1) then
     do i = 1, nxyz

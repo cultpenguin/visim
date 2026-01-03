@@ -279,6 +279,9 @@ contains
       stop 'ALLOCATION_FAILURE'
     end if
 
+    ! Initialize mask to 1 (simulate all nodes)
+    mask = 1
+
     allocate(avepor(nx, ny), stat=ierr)
     if (ierr /= 0) then
       write(*,*) 'ERROR: Failed to allocate avepor array'
